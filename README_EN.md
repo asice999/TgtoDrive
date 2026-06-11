@@ -9,7 +9,7 @@
   <a href="https://hub.docker.com/r/walkingd/tgto123">
     <img src="https://img.shields.io/badge/Docker%20Image-walkingd%2Ftgto123-2496ED?style=for-the-badge&logo=docker" alt="Docker Image">
   </a>
-  <img src="https://img.shields.io/badge/Version-8.3.7-6C63FF?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-8.3.8-6C63FF?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/Arch-amd64%20%7C%20arm64-111827?style=for-the-badge" alt="Architecture">
 </p>
 
@@ -387,11 +387,9 @@ Configures 123 offline-download tasks for magnet, ed2k and torrent links.
 
 ![123 Offline Settings](picture/123云盘-离线设置.png)
 
-#### Fast Import from 115, Tianyi and Quark
+#### Fast Import from 115 and Tianyi
 
-Configures cross-drive fast import from 115, Tianyi, Quark and related sources into 123 Cloud Drive.
-
-![123 Fast Import from 115, Tianyi and Quark](picture/123云盘-秒传115、天翼、夸克.png)
+Configures cross-drive fast import from 115, Tianyi and related sources into 123 Cloud Drive.
 
 #### Share Monitor
 

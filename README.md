@@ -9,7 +9,7 @@
   <a href="https://hub.docker.com/r/walkingd/tgto123">
     <img src="https://img.shields.io/badge/Docker%20Image-walkingd%2Ftgto123-2496ED?style=for-the-badge&logo=docker" alt="Docker Image">
   </a>
-  <img src="https://img.shields.io/badge/Version-8.3.7-6C63FF?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-8.3.8-6C63FF?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/Arch-amd64%20%7C%20arm64-111827?style=for-the-badge" alt="Architecture">
 </p>
 
@@ -36,7 +36,7 @@
 你可以把它理解成一个“网盘媒体库自动化流水线”：
 
 1. **找资源**：通过 Telegram 频道监控、榜单订阅、关键词白名单、Pansou、Nullbr、影巢等入口发现资源。
-2. **转存资源**：自动把 123 / 115 / 光鸭 / 天翼 / 夸克 / 影巢 / 分享链接资源转存到目标网盘目录。
+2. **转存资源**：自动把 123 / 115 / 光鸭 / 天翼 / 影巢 / 分享链接资源转存到目标网盘目录。
 3. **智能整理**：对 115、123 与光鸭网盘里的影视资源自动识别、分类、重命名、洗版。
 4. **挂载 STRM**：对 115、123 与光鸭目录生成 STRM，并支持全量扫描、整理后增量同步、元数据下载与失效清理。
 5. **Emby 播放**：通过 Emby 反向代理劫持播放请求改写为 302 网盘直链，实现更轻的播放链路。
@@ -126,7 +126,7 @@
   * `/share 关键词`：搜索 123 网盘并生成分享链接
   * `/pansou 关键词`：搜索 Pansou 聚合资源
   * `/hdhive 关键词`：搜索影巢资源
-* **跨盘秒传**：115 → 123、天翼 → 123、夸克 → 123 等。
+* **跨盘秒传**：115 → 123、天翼 → 123 等。
 * **本地文件秒传**：支持 PT 本地文件扫描后尝试秒传至 123 / 115。
 * **多协议离线下载**：Magnet / ed2k / Torrent 自动提交到 123 或 115。
 * **短视频下载**：Bilibili / 抖音视频下载。
@@ -406,11 +406,9 @@ docker compose down
 
 ![123 离线设置](picture/123云盘-离线设置.png)
 
-#### 秒传 115、天翼、夸克
+#### 秒传 115、天翼
 
-用于配置跨盘秒传能力，把 115、天翼、夸克等来源资源尝试秒传或导入到 123 云盘。
-
-![123 秒传 115、天翼、夸克](picture/123云盘-秒传115、天翼、夸克.png)
+用于配置跨盘秒传能力，把 115、天翼等来源资源尝试秒传或导入到 123 云盘。
 
 #### 分享转存监控
 
