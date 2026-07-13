@@ -52,8 +52,16 @@ jobs:
 
       - name: Push to ghcr.io
         if: github.event_name == 'release'
+        env:
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u asice999 --password-stdin
+          if [ -z "$GHCR_PAT" ]; then
+            echo "⚠️  GHCR_PAT not set — skipping push to ghcr.io"
+            echo "   Set it in Settings → Secrets → Actions:"
+            echo "   Create PAT at https://github.com/settings/tokens with write:packages scope"
+            exit 0
+          fi
+          echo "$GHCR_PAT" | docker login ghcr.io -u asice999 --password-stdin
           docker push ghcr.io/asice999/tgtodrive:${{ steps.version.outputs.tag }}
           docker push ghcr.io/asice999/tgtodrive:latest
 
