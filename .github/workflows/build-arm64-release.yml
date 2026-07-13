@@ -1,0 +1,68 @@
+name: Build & Upload ARM64 Docker Image
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image tag version (e.g. v6.6.4)'
+        required: true
+        default: 'v6.6.4'
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU for arm64
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/arm64
+
+      - name: Set version tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build ARM64 Docker image
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            --tag tgto:arm64 \
+            --load \
+            -f "v6.6.4（最新版请在docker安装）/Dockerfile" \
+            "v6.6.4（最新版请在docker安装）"
+
+      - name: Save image as tar.gz
+        run: |
+          docker save tgto:arm64 | gzip > TgtoDrive_${{ steps.version.outputs.tag }}_arm64.tar.gz
+          ls -lh TgtoDrive_*.tar.gz
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            TgtoDrive_${{ steps.version.outputs.tag }}_arm64.tar.gz \
+            --clobber
+
+      - name: Upload as workflow artifact (for workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: TgtoDrive_${{ steps.version.outputs.tag }}_arm64
+          path: TgtoDrive_${{ steps.version.outputs.tag }}_arm64.tar.gz
+          retention-days: 7
