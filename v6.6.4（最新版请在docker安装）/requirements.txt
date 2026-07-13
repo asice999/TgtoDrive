@@ -1,0 +1,15 @@
+pycryptodome
+beautifulsoup4
+cryptography
+python-dotenv
+flask
+hashtools
+p115client
+p123client
+requests
+pyTelegramBotAPI
+tqdm
+aiohttp
+guessit
+schedule
+yarl

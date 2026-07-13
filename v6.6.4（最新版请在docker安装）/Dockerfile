@@ -7,18 +7,18 @@ WORKDIR /app
 # 设置Python不缓冲输出
 ENV PYTHONUNBUFFERED=1
 
-# 【关键优化1】先复制依赖清单，单独安装（利用缓存）
+# 先复制依赖清单，单独安装（利用缓存）
 COPY requirements.txt .
-# 安装依赖（可选：使用国内镜像源加速下载）
-RUN pip install -r requirements.txt
-# 【关键优化2】再复制其他文件（代码变动不影响依赖层缓存）
+# 安装依赖并清理pip缓存（合并到同一层减少镜像层数）
+RUN pip install --no-cache-dir -r requirements.txt && \
+    rm -rf /root/.cache/pip
+
+# 再复制其他文件（代码变动不影响依赖层缓存）
 COPY . /app
 
-# 编译Python文件为.pyc
-RUN python -m compileall -b .
+# 编译Python文件为.pyc，然后删除所有.py源文件
+RUN python -m compileall -b . && \
+    find . -name '*.py' -delete
 
-# 删除原始的.py文件
-RUN rm *.py
-
-# 运行Python脚本
+# 运行编译后的Python脚本
 CMD ["python", "-O", "tgto123.pyc"]
