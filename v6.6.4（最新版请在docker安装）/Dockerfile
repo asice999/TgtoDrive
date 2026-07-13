@@ -14,9 +14,25 @@ RUN pip install --no-cache-dir -r requirements.txt && \
     rm -rf /root/.cache/pip
 
 # 修复 pyTelegramBotAPI 与 urllib3 1.26.20+ 兼容性问题
-# format_header_param 已被移除, 改为 None 让 telebot 自行降级
 RUN sed -i 's|format_header_param = fields.format_header_param|format_header_param = getattr(fields, "format_header_param", None)|' \
     /usr/local/lib/python3.13/site-packages/telebot/apihelper.py
+
+# 修复 p115client 新版本 API: multipart_upload_init → upload_init (参数: path→file)
+RUN python3 -c "
+import p115client.tool.upload as u
+# 旧版: multipart_upload_init(client=, path=, filename=, filesize=, filesha1=, pid=)
+# 新版: upload_init(client=, file=, pid=, filename=, filesha1=, filesize=)
+def multipart_upload_init(client, path, filename='', filesize=-1, filesha1='', pid=0):
+    return u.upload_init(client, file=path, pid=pid, filename=filename, filesha1=filesha1, filesize=filesize)
+u.multipart_upload_init = multipart_upload_init
+
+# 持久化到文件
+with open(u.__file__, 'a') as f:
+    f.write('\n# compatibility alias for old code\n')
+    f.write('def multipart_upload_init(client, path, filename=\"\", filesize=-1, filesha1=\"\", pid=0):\n')
+    f.write('    return upload_init(client, file=path, pid=pid, filename=filename, filesha1=filesha1, filesize=filesize)\n')
+print('patched p115client: multipart_upload_init -> upload_init')
+"
 
 # 再复制其他文件（代码变动不影响依赖层缓存）
 COPY . /app
