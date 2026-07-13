@@ -44,14 +44,22 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/arm64 \
-            --tag tgto:arm64 \
+            --tag ghcr.io/asice999/tgtodrive:latest \
+            --tag ghcr.io/asice999/tgtodrive:${{ steps.version.outputs.tag }} \
             --load \
             -f "$DOCKERFILE" \
             "$BUILD_DIR"
 
+      - name: Push to ghcr.io
+        if: github.event_name == 'release'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u asice999 --password-stdin
+          docker push ghcr.io/asice999/tgtodrive:${{ steps.version.outputs.tag }}
+          docker push ghcr.io/asice999/tgtodrive:latest
+
       - name: Save image as tar.gz
         run: |
-          docker save tgto:arm64 | gzip > TgtoDrive_${{ steps.version.outputs.tag }}_arm64.tar.gz
+          docker save ghcr.io/asice999/tgtodrive:latest | gzip > TgtoDrive_${{ steps.version.outputs.tag }}_arm64.tar.gz
           ls -lh TgtoDrive_*.tar.gz
 
       - name: Upload to Release
