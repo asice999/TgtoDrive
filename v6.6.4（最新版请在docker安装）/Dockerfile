@@ -9,9 +9,14 @@ ENV PYTHONUNBUFFERED=1
 
 # 先复制依赖清单，单独安装（利用缓存）
 COPY requirements.txt .
-# 安装依赖并清理pip缓存（合并到同一层减少镜像层数）
+# 安装依赖并清理pip缓存
 RUN pip install --no-cache-dir -r requirements.txt && \
     rm -rf /root/.cache/pip
+
+# 修复 pyTelegramBotAPI 与 urllib3 1.26.20+ 兼容性问题
+# format_header_param 已被移除, 改为 None 让 telebot 自行降级
+RUN sed -i 's|format_header_param = fields.format_header_param|format_header_param = getattr(fields, "format_header_param", None)|' \
+    /usr/local/lib/python3.13/site-packages/telebot/apihelper.py
 
 # 再复制其他文件（代码变动不影响依赖层缓存）
 COPY . /app
