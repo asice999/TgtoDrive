@@ -73,7 +73,7 @@ jobs:
       - name: Upload to Release
         if: github.event_name == 'release'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GHCR_PAT }}
         run: |
           gh release upload "${{ github.event.release.tag_name }}" \
             TgtoDrive_${{ steps.version.outputs.tag }}_arm64.tar.gz \
