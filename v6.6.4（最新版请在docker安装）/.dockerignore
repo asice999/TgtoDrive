@@ -1,3 +1,5 @@
 templete.env
 Dockerfile
 .dockerignore
+*.md
+LICENSE

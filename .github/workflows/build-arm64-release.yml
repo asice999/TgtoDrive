@@ -1,4 +1,4 @@
-name: Build & Upload ARM64 Docker Image
+name: Build & Release ARM64 Docker Image
 
 on:
   release:
@@ -6,16 +6,21 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Image tag version (e.g. v6.6.4)'
+        description: '镜像版本号 (e.g. v6.6.4)'
         required: true
         default: 'v6.6.4'
 
 env:
   BUILD_DIR: v6.6.4__latest__in_docker__install
   DOCKERFILE: v6.6.4__latest__in_docker__install/Dockerfile
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/tgtodrive
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
-  build-and-upload:
+  build-and-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,30 +49,23 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/arm64 \
-            --tag ghcr.io/asice999/tgtodrive:latest \
-            --tag ghcr.io/asice999/tgtodrive:${{ steps.version.outputs.tag }} \
+            --tag ${{ env.IMAGE_NAME }}:latest \
+            --tag ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }} \
             --load \
             -f "$DOCKERFILE" \
             "$BUILD_DIR"
 
-      - name: Push to ghcr.io
-        if: github.event_name == 'release'
+      - name: Push to GitHub Container Registry
         env:
-          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -z "$GHCR_PAT" ]; then
-            echo "⚠️  GHCR_PAT not set — skipping push to ghcr.io"
-            echo "   Set it in Settings → Secrets → Actions:"
-            echo "   Create PAT at https://github.com/settings/tokens with write:packages scope"
-            exit 0
-          fi
-          echo "$GHCR_PAT" | docker login ghcr.io -u asice999 --password-stdin
-          docker push ghcr.io/asice999/tgtodrive:${{ steps.version.outputs.tag }}
-          docker push ghcr.io/asice999/tgtodrive:latest
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+          docker push ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+          docker push ${{ env.IMAGE_NAME }}:latest
 
       - name: Save image as tar.gz
         run: |
-          docker save ghcr.io/asice999/tgtodrive:latest | gzip > TgtoDrive_${{ steps.version.outputs.tag }}_arm64.tar.gz
+          docker save ${{ env.IMAGE_NAME }}:latest | gzip > TgtoDrive_${{ steps.version.outputs.tag }}_arm64.tar.gz
           ls -lh TgtoDrive_*.tar.gz
 
       - name: Upload as workflow artifact
@@ -77,13 +75,27 @@ jobs:
           path: TgtoDrive_${{ steps.version.outputs.tag }}_arm64.tar.gz
           retention-days: 7
 
-      - name: Upload to Release (best-effort)
-        if: github.event_name == 'release'
-        continue-on-error: true
+      - name: Create Release (workflow_dispatch only)
+        if: github.event_name == 'workflow_dispatch'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Trying to upload to release..."
+          TAG="${{ steps.version.outputs.tag }}"
+          gh release create "$TAG" \
+            --title "TgtoDrive $TAG (ARM64)" \
+            --notes "ARM64 Docker image build for $TAG
+
+- 多阶段构建，体积优化
+- 平台: linux/arm64
+- 使用方式: \`docker pull ${{ env.IMAGE_NAME }}:$TAG\`" \
+            --target "${{ github.sha }}" \
+            TgtoDrive_*.tar.gz || echo "Release may already exist"
+
+      - name: Upload to Release (published release)
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           gh release upload "${{ github.event.release.tag_name }}" \
-            TgtoDrive_${{ steps.version.outputs.tag }}_arm64.tar.gz \
-            --clobber || echo "Upload skipped (org token limitation)"
+            TgtoDrive_*.tar.gz \
+            --clobber || echo "Upload skipped"
